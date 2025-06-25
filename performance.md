@@ -37,14 +37,40 @@ Generally follows the principle of:
 | ZGC                            | Scalable, concurrent, region-based; low-latency     | -XX:+UseZGC<br>-XX:ZCollectionInterval=<…><br>-XX:ZUncommitDelay=<…><br>-XX:ZFragmentationLimit=<…>                                   |
 | Shenandoah GC                  | Concurrent, region-based; ultra low-pause           | -XX:+UseShenandoahGC<br>-XX:ShenandoahGCThreads=<…><br>-XX:ShenandoahHeapRegionSize=<…><br>-XX:ShenandoahUncommitDelay=<…>            |
 
+Note: The parallel collectors only provide speedup if the system is not CPU-bound. If the GC is not
+able to keep up this triggers a full(non-parallel GC)
+
 ## Out of memory errors
 
 ### Out of native memory
-32-bit systems are constrained by ~3.5GB. If RAM and virtual-RAM are 
+
+32-bit systems are constrained by ~3.5GB. If RAM and virtual-RAM are
 fully spent and the J
 
 ### JNA allocated memory
+
 Hard to track since JVM cannot manage JNA(that allocate native memory)
+
+### GC- overhead limit reached
+
+JVM throws an out of memory error when it determines that the application spends
+too much time performing GC.
+
+All the following conditions must be true
+
+| # | Description                                                     | Flag                                        | Default       |
+|---|-----------------------------------------------------------------|---------------------------------------------|---------------|
+| 1 | % of total time spent in GC exceeds threshold                   | ‑XX:GCTimeLimit=N                           | 98 (i.e. 98%) |
+| 2 | % of heap freed by GC is below threshold                        | ‑XX:GCHeapFreeLimit=N                       | 2             |
+| 3 | Conditions (1) & (2) have held for this many consecutive cycles | (no dedicated flag)                         | 5 cycles      |
+| 4 | Turn on the GC‐overhead‐limit check (terminates JVM when hit)   | ‑XX:+UseGCOverheadLimit/-UseGCOverheadLimit | Enabled (`+`) |
+
+Note: in the 4th run the JVM removes all soft-references
+
+## Common patterns ([source](https://blog.gceasy.io/interesting-garbage-collection-patterns/))
+<img height="300" src="/img/x/img_0.png" width="500"/>
+<img height="300" src="/img/x/img_1.png" width="500"/>
+<img height="300" src="/img/x/img_3.png" width="500"/>
 
 ## Tools
 
